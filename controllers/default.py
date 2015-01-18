@@ -13,12 +13,20 @@ def index():
     """
     This appears when you go to bborad/default/index
     """
-    response.flash = T("Welcome to web2py!")
+    response.flash = T("yoHohoOH!")
     # generate an index of the posts (grabs all records)
     posts = db().select(db.bboard.ALL)
 
     return dict(posts = posts)
 
+def add():
+    """Add a post"""
+    form = SQLFORM(db.bboard)
+    if form.process().accepted:
+        # successful processing
+        session.flash = T('Added')
+        redirect(URL('default','index'))
+    return dict(form=form)
 
 def user():
     """
