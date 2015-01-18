@@ -11,14 +11,13 @@
 
 def index():
     """
-    example action using the internationalization operator T and flash
-    rendered by views/default/index.html or views/generic.html
-
-    if you need a simple wiki simply replace the two lines below with:
-    return auth.wiki()
+    This appears when you go to bborad/default/index
     """
     response.flash = T("Welcome to web2py!")
-    return dict(message=T('Hello World'))
+    # generate an index of the posts (grabs all records)
+    posts = db().select(db.bboard.ALL)
+
+    return dict(posts = posts)
 
 
 def user():
