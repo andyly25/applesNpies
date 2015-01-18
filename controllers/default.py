@@ -11,7 +11,7 @@
 
 def index():
     """
-    This appears when you go to bborad/default/index
+    This appears when you go to bboard/default/index
     """
     response.flash = T("yoHohoOH!")
     # generate an index of the posts (grabs all records)
@@ -62,6 +62,39 @@ def delete():
         redirect(URL('default', 'index'))
     db(db.bboard.id == p.id).delete()
     redirect(URL('default', 'index'))
+
+def index2():
+    """Better index."""
+    # Let's get all data
+    q = db.bboard
+
+    def generate_del_button(row):
+        #If the record is ours, we can delete it.
+        b = ''
+        if auth.user_id == row.user_id:
+            b = A('Delete', _class = 'btn', _href=URL('default','delete',args=[row.id]))
+        return b
+
+    def generate_edit_button(row):
+        #If the record is ours, we can delete it.
+        b = ''
+        if auth.user_id == row.user_id:
+            b = A('Edit', _class = 'btn', _href=URL('default','edit',args=[row.id]))
+        return b
+
+    # creates extra buttons
+    links = [
+        dict(header= '', body = generate_del_button),
+        dict(header= '',body = generate_edit_button),
+    ]
+
+    form = SQLFORM.grid(q,
+        fields = [db.bboard.user_id, db.bboard.date_posted,db.bboard.title,db.bboard.category],
+        editable = False, deletable = False,
+        links=links, 
+
+        )
+    return dict(form = form)
 
 def user():
     """

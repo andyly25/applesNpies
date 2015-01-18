@@ -10,6 +10,7 @@ def get_first_name():
 CATEGORY = ['Car', 'Bike', 'Book','Music', 'Outdoors', 'For the House', 'Misc.']
 
 db.define_table('bboard',
+				Field('title'),
 				Field('name'),
 				Field('user_id',db.auth_user),
 				Field('phone'),

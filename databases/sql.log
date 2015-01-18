@@ -69,3 +69,6 @@ success!
 timestamp: 2015-01-17T22:52:38.259409
 ALTER TABLE bboard ADD category CHAR(512);
 success!
+timestamp: 2015-01-18T00:13:49.408071
+ALTER TABLE bboard ADD title CHAR(512);
+success!
