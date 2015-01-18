@@ -19,14 +19,49 @@ def index():
 
     return dict(posts = posts)
 
+@auth.requires_login()
 def add():
     """Add a post"""
     form = SQLFORM(db.bboard)
     if form.process().accepted:
         # successful processing
-        session.flash = T('Added')
+        # session.flash = T('Added')
         redirect(URL('default','index'))
     return dict(form=form)
+
+def view():
+    """view a post"""
+    # p = db(db.bboard.id == request.args(0)).select().first()
+    p = db.bboard(request.args(0)) or redirect(URL('default','index'))
+    form = SQLFORM(db.bboard, record = p, readonly = True)
+    # p.name would contain the name of the poster.
+    return dict(form=form)
+
+@auth.requires_login()
+def edit():
+    """view a post"""
+    # p = db(db.bboard.id == request.args(0)).select().first()
+    p = db.bboard(request.args(0)) or redirect(URL('default','index'))
+    if p.user_id != auth.user_id:
+        session.flash = T('Not authorized')
+        redirect(URL('default', 'index'))
+    form = SQLFORM(db.bboard, record = p)
+    if form.process().accepted:
+        session.flash = T('Updated')
+        redirect(URL('default','view',args=[p.id]))
+    # p.name would contain the name of the poster.
+    return dict(form=form)
+
+@auth.requires_login()
+@auth.requires_signature()
+def delete():
+    """Deletes a post"""
+    p = db.bboard(request.args(0)) or redirect(URL('default','index'))
+    if p.user_id != auth.user_id:
+        session.flash = T('Not authorized')
+        redirect(URL('default', 'index'))
+    db(db.bboard.id == p.id).delete()
+    redirect(URL('default', 'index'))
 
 def user():
     """
