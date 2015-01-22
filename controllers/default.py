@@ -82,14 +82,21 @@ def index2():
             b = A('Edit', _class = 'btn', _href=URL('default','edit',args=[row.id]))
         return b
 
+    def shorten_post (row):
+        """ gives short description of entries"""
+        return row.bbmessage[:10] + '...'
+    
     # creates extra buttons
     links = [
+        dict(header = 'Post', body = shorten_post),
         dict(header= '', body = generate_del_button),
         dict(header= '',body = generate_edit_button),
     ]
+    db.bboard.bbmessage.readable = False
 
     form = SQLFORM.grid(q,
-        fields = [db.bboard.user_id, db.bboard.date_posted,db.bboard.title,db.bboard.category],
+        fields = [db.bboard.user_id, db.bboard.date_posted,db.bboard.title,
+        db.bboard.category, db.bboard.bbmessage],
         editable = False, deletable = False,
         links=links, 
 
