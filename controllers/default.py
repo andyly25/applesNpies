@@ -26,14 +26,18 @@ def add():
     if form.process().accepted:
         # successful processing
         # session.flash = T('Added')
-        redirect(URL('default','index'))
+        redirect(URL('default','index2'))
     return dict(form=form)
+
+def returnBack():
+    redirect(URL('default','index2'))
 
 def view():
     """view a post"""
     # p = db(db.bboard.id == request.args(0)).select().first()
-    p = db.bboard(request.args(0)) or redirect(URL('default','index'))
-    form = SQLFORM(db.bboard, record = p, readonly = True)
+    p = db.bboard(request.args(0)) or redirect(URL('default','index2'))
+    url = URL('download')
+    form = SQLFORM(db.bboard, record = p, readonly = True, upload=url)
     # p.name would contain the name of the poster.
     return dict(form=form)
 
@@ -41,13 +45,14 @@ def view():
 def edit():
     """view a post"""
     # p = db(db.bboard.id == request.args(0)).select().first()
-    p = db.bboard(request.args(0)) or redirect(URL('default','index'))
+    p = db.bboard(request.args(0)) or redirect(URL('default','index2'))
     if p.user_id != auth.user_id:
         session.flash = T('Not authorized')
-        redirect(URL('default', 'index'))
+        redirect(URL('default', 'index2'))
     form = SQLFORM(db.bboard, record = p)
     if form.process().accepted:
         session.flash = T('Updated')
+        # redirect(URL('default','index2',args=[p.id]))
         redirect(URL('default','view',args=[p.id]))
     # p.name would contain the name of the poster.
     return dict(form=form)
@@ -56,23 +61,24 @@ def edit():
 @auth.requires_signature()
 def delete():
     """Deletes a post"""
-    p = db.bboard(request.args(0)) or redirect(URL('default','index'))
+    p = db.bboard(request.args(0)) or redirect(URL('default','index2'))
     if p.user_id != auth.user_id:
         session.flash = T('Not authorized')
-        redirect(URL('default', 'index'))
+        redirect(URL('default', 'index2'))
     db(db.bboard.id == p.id).delete()
-    redirect(URL('default', 'index'))
+    redirect(URL('default', 'index2'))
 
 def index2():
     """Better index."""
     # Let's get all data
     q = db.bboard
+    url = URL('download')
 
     def generate_del_button(row):
         #If the record is ours, we can delete it.
         b = ''
         if auth.user_id == row.user_id:
-            b = A('Delete', _class = 'btn', _href=URL('default','delete',args=[row.id]))
+            b = A('Delete', _class = 'btn', _href=URL('default','delete',args=[row.id],user_signature = True))
         return b
 
     def generate_edit_button(row):
@@ -87,21 +93,28 @@ def index2():
         return row.bbmessage[:10] + '...'
     
     # creates extra buttons
-    links = [
-        dict(header = 'Post', body = shorten_post),
-        dict(header= '', body = generate_del_button),
-        dict(header= '',body = generate_edit_button),
-    ]
-    db.bboard.bbmessage.readable = False
+    links = []
+    if len(request.args)==0:
+        # we are in the main index
+        links.append(dict(header = 'Post', body = shorten_post))
+        db.bboard.bbmessage.readable = False
+    links.append(dict(header= '',body = generate_edit_button))
+    links.append(dict(header= '', body = generate_del_button))
+
 
     form = SQLFORM.grid(q,
         fields = [db.bboard.user_id, db.bboard.date_posted,db.bboard.title,
         db.bboard.category, db.bboard.bbmessage],
         editable = False, deletable = False,
         links=links, 
-
+        paginate = 5,
+        csv = False,
+        upload=url
         )
     return dict(form = form)
+
+def download():
+    return response.download(request, db)
 
 def user():
     """
