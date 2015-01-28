@@ -9,11 +9,12 @@
 ## - api is an example of Hypermedia API support and access control
 #########################################################################
 
-def index():
+# I switched the index 1 and 2 around
+def index2():
     """
     This appears when you go to bboard/default/index
     """
-    response.flash = T("yoHohoOH!")
+    response.flash = T("Hello user!")
     # generate an index of the posts (grabs all records)
     posts = db().select(db.bboard.ALL)
 
@@ -26,16 +27,16 @@ def add():
     if form.process().accepted:
         # successful processing
         # session.flash = T('Added')
-        redirect(URL('default','index2'))
+        redirect(URL('default','index'))
     return dict(form=form)
 
 def returnBack():
-    redirect(URL('default','index2'))
+    redirect(URL('default','index'))
 
 def view():
     """view a post"""
     # p = db(db.bboard.id == request.args(0)).select().first()
-    p = db.bboard(request.args(0)) or redirect(URL('default','index2'))
+    p = db.bboard(request.args(0)) or redirect(URL('default','index'))
     url = URL('download')
     form = SQLFORM(db.bboard, record = p, readonly = True, upload=url)
     # p.name would contain the name of the poster.
@@ -45,14 +46,14 @@ def view():
 def edit():
     """view a post"""
     # p = db(db.bboard.id == request.args(0)).select().first()
-    p = db.bboard(request.args(0)) or redirect(URL('default','index2'))
+    p = db.bboard(request.args(0)) or redirect(URL('default','index'))
     if p.user_id != auth.user_id:
         session.flash = T('Not authorized')
-        redirect(URL('default', 'index2'))
+        redirect(URL('default', 'index'))
     form = SQLFORM(db.bboard, record = p)
     if form.process().accepted:
         session.flash = T('Updated')
-        # redirect(URL('default','index2',args=[p.id]))
+        # redirect(URL('default','index',args=[p.id]))
         redirect(URL('default','view',args=[p.id]))
     # p.name would contain the name of the poster.
     return dict(form=form)
@@ -61,19 +62,23 @@ def edit():
 @auth.requires_signature()
 def delete():
     """Deletes a post"""
-    p = db.bboard(request.args(0)) or redirect(URL('default','index2'))
+    p = db.bboard(request.args(0)) or redirect(URL('default','index'))
     if p.user_id != auth.user_id:
         session.flash = T('Not authorized')
-        redirect(URL('default', 'index2'))
+        redirect(URL('default', 'index'))
     db(db.bboard.id == p.id).delete()
-    redirect(URL('default', 'index2'))
+    redirect(URL('default', 'index'))
 
-def index2():
+def index():
     """Better index."""
     # Let's get all data
     q = db.bboard
     url = URL('download')
-
+    
+    # if db.bboard.sold == False:
+    #     db.bboard.sold.label = 'The item is: Available'
+    # else:
+    #     db.bboard.sold.label= 'The item is: Sold'
     def generate_del_button(row):
         #If the record is ours, we can delete it.
         b = ''
